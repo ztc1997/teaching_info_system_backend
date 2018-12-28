@@ -1,0 +1,12 @@
+[database]
+# 数据库连接信息，目前仅支持 mysql，必须
+dialect = mysql
+uri = 用户名:密码@/数据库名?charset=utf8&parseTime=True&loc=Local
+
+[server]
+# 服务器监听地址，默认: 127.0.0.1:9000
+listen = 127.0.0.1:9000
+
+[log]
+# 错误日志保存路径，默认: 不保存
+;error = /var/log/teaching_info_system_backend/error.log
