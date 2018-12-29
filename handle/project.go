@@ -64,21 +64,15 @@ func CreateProject(w http.ResponseWriter, r *http.Request) {
 }
 
 func DeleteProject(w http.ResponseWriter, r *http.Request) {
-	var projectId uint
-	{
-		projectIdStr := chi.URLParam(r, "projectId")
-		i, err := strconv.ParseUint(projectIdStr, 10, strconv.IntSize)
-		if err != nil {
-			log.Printf("fail to ParseUint: %v", err)
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-			return
-		}
-
-		projectId = uint(i)
+	projectId, err := parseProjectId(r)
+	if err != nil {
+		log.Printf("fail to parseProjectId: %v", err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
 	}
 
 	var project model.Project
-	err := project.GetById(projectId)
+	err = project.GetById(projectId)
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			writeErrorResult(w, "找不到课题")
@@ -99,6 +93,45 @@ func DeleteProject(w http.ResponseWriter, r *http.Request) {
 	project.Delete()
 
 	writeResult(w)
+}
+
+func UndoDeleteProject(w http.ResponseWriter, r *http.Request) {
+	projectId, err := parseProjectId(r)
+	if err != nil {
+		log.Printf("fail to parseProjectId: %v", err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	var project model.Project
+	err = project.UnscopedGetById(projectId)
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			writeErrorResult(w, "找不到课题")
+			return
+		}
+		log.Printf("fail to get project: %v", err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	if project.DeletedAt == nil {
+		writeErrorResult(w, "课题未被删除")
+		return
+	}
+
+	// 权限检查
+	user := r.Context().Value("user").(model.User)
+	if project.UserId != user.ID {
+		http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
+		return
+	}
+
+	project.UndoDelete()
+
+	result := ProjectResult{}
+	result.ParseProjectModel(project)
+	writeResult(w, result)
 }
 
 func SaveProject(w http.ResponseWriter, r *http.Request) {
@@ -172,5 +205,16 @@ func (r *ProjectResult) ParseProjectModel(m model.Project) {
 	r.FundsTotal = m.FundsTotal
 	r.FundsUsed = m.FundsUsed
 	r.Deadline = m.Deadline.Format("2006-01-02")
+	return
+}
+
+func parseProjectId(r *http.Request) (projectId uint, err error) {
+	projectIdStr := chi.URLParam(r, "projectId")
+	i, err := strconv.ParseUint(projectIdStr, 10, strconv.IntSize)
+	if err != nil {
+		return
+	}
+
+	projectId = uint(i)
 	return
 }

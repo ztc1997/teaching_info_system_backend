@@ -43,6 +43,16 @@ func (p *Project) GetById(id uint) (err error) {
 	return
 }
 
+func (p *Project) UnscopedGetById(id uint) (err error) {
+	err = db.Unscoped().First(p, id).Error
+	return
+}
+
+func (p *Project) UndoDelete() (err error) {
+	err = db.Unscoped().Model(p).Update("deleted_at", nil).Error
+	return
+}
+
 func (p *Project) GetProjects(userId uint) (projects []Project, err error) {
 	err = db.Find(&projects, "user_id = ?", userId).Error
 	return

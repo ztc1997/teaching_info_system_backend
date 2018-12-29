@@ -77,6 +77,7 @@ func serveHTTP(cfg *ini.File) {
 			r.With(handle.ProjectCtx).Post("/", handle.CreateProject)
 			r.With(handle.ProjectCtx).Put("/", handle.SaveProject)
 			r.Delete("/{projectId}", handle.DeleteProject)
+			r.Post("/undoDelete/{projectId}", handle.UndoDeleteProject)
 		})
 
 		r.Get("/projects", handle.GetProjects)
