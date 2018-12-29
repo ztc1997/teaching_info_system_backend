@@ -4,6 +4,8 @@ import (
 	"errors"
 	"github.com/jinzhu/gorm"
 	"golang.org/x/crypto/bcrypt"
+	"log"
+	"time"
 )
 
 const (
@@ -17,7 +19,8 @@ var DefaultUser = new(User)
 var ErrUserNameExisted = errors.New("用户名已存在")
 
 type User struct {
-	*gorm.Model
+	ID           uint `gorm:"primary_key"`
+	CreatedAt    time.Time
 	Username     string `gorm:"not null;unique;size:20"`
 	PasswordHash []byte `gorm:"type:BINARY(60);not null"`
 	UserType     int
@@ -47,13 +50,18 @@ func (u *User) FirstByUsername() (err error) {
 	return
 }
 
-func (u *User) DeleteById(userId uint) (err error) {
-	err = db.Delete(u, userId).Error
+func (u *User) DeleteById() (err error) {
+	err = db.Delete(u, u.ID).Error
 	return
 }
 
 func (u *User) Save() (err error) {
 	err = db.Save(u).Error
+	return
+}
+
+func (u *User) UpdatePassword() (err error) {
+	err = db.Model(u).Update("password_hash", u.PasswordHash).Error
 	return
 }
 
@@ -80,5 +88,22 @@ func (u *User) CreateDefaultAdminUser() (err error) {
 	}
 
 	err = u.Create()
+	return
+}
+
+func (u *User) AfterDelete(tx *gorm.DB) (err error) {
+	err = DefaultLoginToken.LogoutAll(u.ID)
+	if err != nil {
+		log.Printf("fail to LogoutAll: %v", err)
+		tx.Rollback()
+		return
+	}
+
+	err = DefaultProject.DeleteByUserId(u.ID)
+	if err != nil {
+		log.Printf("fail to delete project by user id: %v", err)
+		tx.Rollback()
+		return
+	}
 	return
 }

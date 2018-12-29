@@ -47,7 +47,8 @@ func DeleteUser(w http.ResponseWriter, r *http.Request) {
 		userId = uint(i)
 	}
 
-	err := model.DefaultUser.DeleteById(userId)
+	user := model.User{ID: userId}
+	err := user.DeleteById()
 	if err != nil {
 		log.Printf("fail to delete user: %v", err)
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -55,16 +56,6 @@ func DeleteUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	writeResult(w)
-
-	err = model.DefaultLoginToken.LogoutAll(userId)
-	if err != nil {
-		log.Printf("fail to LogoutAll: %v", err)
-	}
-
-	err = model.DefaultProject.DeleteByUserId(userId)
-	if err != nil {
-		log.Printf("fail to delete project by user id: %v", err)
-	}
 }
 
 func CreateUser(w http.ResponseWriter, r *http.Request) {
@@ -126,7 +117,11 @@ func SetPassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = user.Save()
+	err = user.UpdatePassword()
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
 
 	writeResult(w)
 
@@ -154,9 +149,7 @@ func GetUsers(w http.ResponseWriter, r *http.Request) {
 }
 
 func (r *UserResult) ParseUserModel(m model.User) {
-	if m.Model != nil {
-		r.Id = m.ID
-	}
+	r.Id = m.ID
 	r.Username = m.Username
 	r.UserType = m.UserType
 	return
