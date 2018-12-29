@@ -81,13 +81,13 @@ func (t *LoginToken) ParseTokensStr(token, CSRFToken string) (err error) {
 }
 
 func (t *LoginToken) ClearUp() (err error) {
-	err = db.Delete(t, "expires < ?", time.Now()).Error
+	err = db.Delete(t, "expires < ?", gorm.NowFunc()).Error
 	return
 }
 
-func (t *LoginToken) ScheduleClearUp() (quit chan struct{}) {
+func (t *LoginToken) PeriodicCleanup() (quit chan struct{}) {
 	quit = make(chan struct{})
-	ticker := time.NewTicker(time.Minute * 1)
+	ticker := time.NewTicker(time.Minute * 10)
 	go func() {
 		for {
 			select {

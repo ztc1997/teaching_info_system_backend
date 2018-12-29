@@ -32,7 +32,7 @@ func InitDB(dialect string, args ...interface{}) (err error) {
 		}
 	}
 
-	quitScheduleClearUp = DefaultLoginToken.ScheduleClearUp()
+	quitScheduleClearUp = DefaultLoginToken.PeriodicCleanup()
 	return
 }
 
