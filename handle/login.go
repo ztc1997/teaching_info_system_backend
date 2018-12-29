@@ -1,7 +1,6 @@
 package handle
 
 import (
-	"github.com/json-iterator/go"
 	"github.com/ztc1997/teaching_info_system_backend/model"
 	"log"
 	"net/http"
@@ -18,7 +17,7 @@ type LoginForm struct {
 
 func Login(w http.ResponseWriter, r *http.Request) {
 	form := LoginForm{}
-	err := jsoniter.ConfigFastest.NewDecoder(r.Body).Decode(&form)
+	err := json.NewDecoder(r.Body).Decode(&form)
 	defer r.Body.Close()
 	if err != nil {
 		log.Printf("fail to parse form: %v", err)

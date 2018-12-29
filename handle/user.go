@@ -2,7 +2,6 @@ package handle
 
 import (
 	"github.com/go-chi/chi"
-	"github.com/json-iterator/go"
 	"github.com/ztc1997/teaching_info_system_backend/model"
 	"log"
 	"net/http"
@@ -60,7 +59,7 @@ func DeleteUser(w http.ResponseWriter, r *http.Request) {
 
 func CreateUser(w http.ResponseWriter, r *http.Request) {
 	var form UserForm
-	err := jsoniter.ConfigFastest.NewDecoder(r.Body).Decode(&form)
+	err := json.NewDecoder(r.Body).Decode(&form)
 	r.Body.Close()
 	if err != nil || len(form.Username) == 0 || len(form.Username) > 20 || len(form.Password) < 8 {
 		log.Printf("fail to parse form: %v", err)
@@ -95,7 +94,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 
 func SetPassword(w http.ResponseWriter, r *http.Request) {
 	var form SetPasswordForm
-	err := jsoniter.ConfigFastest.NewDecoder(r.Body).Decode(&form)
+	err := json.NewDecoder(r.Body).Decode(&form)
 	r.Body.Close()
 	if err != nil || len(form.CurrentPassword) < 8 || len(form.NewPassword) < 8 {
 		log.Printf("fail to parse form: %v", err)

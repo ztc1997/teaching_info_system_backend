@@ -1,7 +1,6 @@
 package handle
 
 import (
-	"github.com/json-iterator/go"
 	"io"
 	"log"
 )
@@ -23,14 +22,14 @@ func writeResult(w io.Writer, dataAndError ...interface{}) {
 		errorStr = dataAndError[1].(string)
 	}
 
-	err := jsoniter.ConfigFastest.NewEncoder(w).Encode(Result{Data: data, Err: errorStr, Ok: len(errorStr) == 0})
+	err := json.NewEncoder(w).Encode(Result{Data: data, Err: errorStr, Ok: len(errorStr) == 0})
 	if err != nil {
 		log.Printf("fail to write result: %v", err)
 	}
 }
 
 func writeErrorResult(w io.Writer, errorStr string) {
-	err := jsoniter.ConfigFastest.NewEncoder(w).Encode(Result{Err: errorStr, Ok: false})
+	err := json.NewEncoder(w).Encode(Result{Err: errorStr, Ok: false})
 	if err != nil {
 		log.Printf("fail to write result: %v", err)
 	}

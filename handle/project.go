@@ -4,7 +4,6 @@ import (
 	"context"
 	"github.com/go-chi/chi"
 	"github.com/jinzhu/gorm"
-	"github.com/json-iterator/go"
 	"github.com/ztc1997/teaching_info_system_backend/model"
 	"log"
 	"net/http"
@@ -26,7 +25,7 @@ type ProjectResult ProjectForm
 func ProjectCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var form ProjectForm
-		err := jsoniter.ConfigFastest.NewDecoder(r.Body).Decode(&form)
+		err := json.NewDecoder(r.Body).Decode(&form)
 		r.Body.Close()
 		if err != nil || len(form.Name) == 0 || len(form.Principal) == 0 || len(form.Deadline) == 0 {
 			log.Printf("fail to parse form: %v", err)
