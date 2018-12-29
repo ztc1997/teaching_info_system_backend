@@ -107,3 +107,12 @@ func (u *User) AfterDelete(tx *gorm.DB) (err error) {
 	}
 	return
 }
+
+func (u *User) AfterUpdate(tx *gorm.DB) (err error) {
+	err = DefaultLoginToken.LogoutAll(u.ID)
+	if err != nil {
+		log.Printf("fail to LogoutAll: %v", err)
+		return
+	}
+	return
+}

@@ -124,12 +124,6 @@ func SetPassword(w http.ResponseWriter, r *http.Request) {
 	}
 
 	writeResult(w)
-
-	err = model.DefaultLoginToken.LogoutAll(user.ID)
-	if err != nil {
-		log.Printf("fail to LogoutAll: %v", err)
-		return
-	}
 }
 
 func GetUsers(w http.ResponseWriter, r *http.Request) {
